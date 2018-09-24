@@ -19,24 +19,31 @@ defmodule Mix.Tasks.Deps.Licenses do
     |> Hex.Mix.packages_from_lock()
     |> Hex.Registry.Server.prefetch()
 
-    dep_names = Map.keys(lock)
-
     packages_info =
-      dep_names
+      lock
+      |> Map.keys()
       |> Enum.sort()
       |> Enum.map(fn name ->
         case :file.consult('./deps/' ++ Atom.to_charlist(name) ++ '/hex_metadata.config') do
           {:ok, config} ->
-            {_, licenses} = Enum.find(config, fn {k, _v} -> k == "licenses" end)
-            [Atom.to_string(name), Enum.join(licenses, ", ")]
+            config_to_license_info(config, name)
 
           {:error, _} ->
-            Hex.Shell.error("Could not find license info for #{Atom.to_string(name)}. Perhaps you are getting it a different source than Hex?")
-            nil
+            [Atom.to_string(name), "Could not find license information"]
         end
       end)
-      |> Enum.reject(&is_nil/1)
 
     Mix.Tasks.Hex.print_table(["Dependency", "License"], packages_info)
+  end
+
+  @spec config_to_license_info([tuple], String.t()) :: [String.t()]
+  defp config_to_license_info(config, name) do
+    case Enum.find(config, fn {k, _v} -> k == "licenses" end) do
+      {_, licenses} ->
+        [Atom.to_string(name), Enum.join(licenses, ", ")]
+
+      _other ->
+        [Atom.to_string(name), "Could not find license information"]
+    end
   end
 end
