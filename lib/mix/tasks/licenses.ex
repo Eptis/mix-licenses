@@ -5,9 +5,13 @@ defmodule Mix.Tasks.Deps.Licenses do
   @shortdoc "Lists license information for your dependencies"
 
   @moduledoc """
-  Shows all Licenses for Hex dependencies of your application.
+  Checks all your dependencies from your mix.lock file and reads the license information from
+  their `hex_metadata.config` and prints it a nicely formatted table.
+  If a dependency does not have a `hex_metadata.config` it prints "Could not find license information".
+
   """
 
+  @doc false
   def run(_) do
     Hex.check_deps()
     Hex.start()
